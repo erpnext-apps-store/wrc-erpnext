@@ -1,0 +1,1 @@
+wrc_erpnext.patches.create_bom_barcode_fields
