@@ -19,13 +19,16 @@ frappe.ui.form.on("Work Order", {
 						"transfer_material_against", "item_name"];
 
 					$.each(fields, function (i, field) {
-						frm.set_value(field, r.message[field]);
-						frm.doc.bom_barcode = r.message["bom_barcode"];
+						if (r.message[field]) {
+							frm.set_value(field, r.message[field]);
+						}
 					});
+					frm.doc.bom_barcode = r.message["bom_barcode"];
 					if (r.message["set_scrap_wh_mandatory"]) {
 						frm.toggle_reqd("scrap_warehouse", true);
 					}
 					erpnext.in_production_item_onchange = false;
+					frm.refresh();
 				}
 			});
 		}
@@ -40,9 +43,12 @@ frappe.ui.form.on("Work Order", {
 			},
 
 			callback: function (r) {
-				if (r.message !== "invalid") {
-					frm.doc.production_item = r.message["item"];
-					frm.set_value("item_name", r.message["item_name"]);
+				if (r && r.message) {
+					if (frm.doc.production_item !== r.message["item"]) {
+						frm.doc.production_item = r.message["item"];
+						frm.set_value("item_name", r.message["item_name"]);
+					}
+
 					frm.set_value("bom_no", r.message["bom_no"]);
 
 					frm.set_value('sales_order', "");
@@ -59,12 +65,6 @@ frappe.ui.form.on("Work Order", {
 					if (r.message["set_scrap_wh_mandatory"]) {
 						frm.toggle_reqd("scrap_warehouse", true);
 					}
-					frm.refresh();
-				}
-				else {
-					frm.set_value("production_item", "");
-					frm.set_value("bom_no", "");
-					frm.set_value("quantity", "");
 					frm.refresh();
 				}
 			}

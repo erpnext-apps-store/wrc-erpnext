@@ -7,14 +7,14 @@ from frappe import _
 from frappe.utils import nowdate
 from erpnext.manufacturing.doctype.work_order.work_order import check_if_scrap_warehouse_mandatory
 
+
 @frappe.whitelist()
 def get_bom_barcode_details(barcode, project=None):
-	bom = frappe.db.get_value("BOM Barcode", {"barcode": barcode}, "parent")
+	bom = frappe.db.get_value(
+		"BOM", filters={"barcode": barcode}, fieldname=["name"])
 
 	if not bom:
-		frappe.msgprint(
-			_("Invalid Barcode. There is no BOM attached to this barcode."))
-		return "invalid"
+		frappe.throw(_("Invalid Barcode. There is no BOM attached to this barcode."))
 
 	else:
 		item = frappe.db.get_value("BOM", bom, "item")
@@ -26,14 +26,16 @@ def get_bom_barcode_details(barcode, project=None):
 				frappe.msgprint(_("Default BOM not found for Item {0} and Project {1}").format(
 					item, project), alert=1)
 
-		bom_data = frappe.db.get_value('BOM', bom,
-                                 ['project', 'allow_alternative_item', 'transfer_material_against', 'item_name'], as_dict=1)
+		bom_data = frappe.db.get_value('BOM',
+			filters={'name': bom},
+			fieldname=['project', 'allow_alternative_item', 'transfer_material_against', 'item_name'], as_dict=1)
 		res['project'] = project or bom_data.pop("project")
 		res.update(bom_data)
 		res['item'] = item
 		res['bom_no'] = bom
 		res.update(check_if_scrap_warehouse_mandatory(res["bom_no"]))
 		return res
+
 
 @frappe.whitelist()
 def get_item_details(item, project=None):
@@ -44,7 +46,8 @@ def get_item_details(item, project=None):
 	if project:
 		filters = {"item": item, "project": project}
 
-	res["bom_no"] = frappe.db.get_value("BOM", filters=filters)
+	res["bom_no"] = frappe.db.get_value(
+		"BOM", filters=filters, fieldname=["name"])
 
 	if not res["bom_no"]:
 		variant_of = frappe.db.get_value("Item", item, "variant_of")
@@ -55,23 +58,26 @@ def get_item_details(item, project=None):
 
 	if not res["bom_no"]:
 		if project:
-			res = wrc_erpnext.get_item_details(item)
+			res = get_item_details(item)
 			frappe.msgprint(_("Default BOM not found for Item {0} and Project {1}").format(
 				item, project), alert=1)
 		else:
 			frappe.throw(_("Default BOM for {0} not found").format(item))
 
-	bom_data = frappe.db.get_value('BOM', res['bom_no'],
-								['project', 'allow_alternative_item', 'transfer_material_against', 'item_name'], as_dict=1)
+	bom_data = frappe.db.get_value('BOM',
+		filters={'name': res['bom_no']},
+		fieldname=['project', 'allow_alternative_item', 'transfer_material_against', 'item_name'], as_dict=1)
 
-	barcode = frappe.db.get_value(
-		"BOM Barcode", {"parent": res['bom_no']}, "barcode")
+	barcode = frappe.db.get_value("BOM", filters={
+		"name": res['bom_no'],
+	}, fieldname=["barcode"])
 	res['project'] = project or bom_data.pop("project")
 	res['bom_barcode'] = barcode
 	res.update(bom_data)
 	res.update(check_if_scrap_warehouse_mandatory(res["bom_no"]))
 
 	return res
+
 
 def set_bom_details(item):
 	res = frappe.db.sql("""

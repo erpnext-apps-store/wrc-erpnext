@@ -81,13 +81,11 @@ doctype_js = {
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-#	}
-# }
+doc_events = {
+	"BOM": {
+		"validate": "wrc_erpnext.wrc_erpnext.validations.bom.validate",
+	}
+}
 
 # Scheduled Tasks
 # ---------------
@@ -120,7 +118,5 @@ doctype_js = {
 #
 override_whitelisted_methods = {
 	"erpnext.manufacturing.doctype.work_order.work_order.get_item_details": "wrc_erpnext.wrc_erpnext.validations.work_order.get_item_details",
-	"erpnext.selling.doctype.sales_order.sales_order.get_work_order_items": "wrc_erpnext.wrc_erpnext.validations.sales_order.get_work_order_items",
-	"erpnext.selling.doctype.sales_order.sales_order.make_work_orders": "wrc_erpnext.wrc_erpnext.validations.sales_order.make_work_orders"
 }
 
