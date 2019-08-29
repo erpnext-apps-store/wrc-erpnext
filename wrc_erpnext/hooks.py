@@ -26,7 +26,9 @@ app_license = "MIT"
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-# doctype_js = {"doctype" : "public/js/doctype.js"}
+doctype_js = {
+	"Work Order" : "public/js/Work Order.js"
+}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -79,13 +81,11 @@ app_license = "MIT"
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-#	}
-# }
+doc_events = {
+	"BOM": {
+		"validate": "wrc_erpnext.wrc_erpnext.validations.bom.validate",
+	}
+}
 
 # Scheduled Tasks
 # ---------------
@@ -116,7 +116,7 @@ app_license = "MIT"
 # Overriding Whitelisted Methods
 # ------------------------------
 #
-# override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "wrc_erpnext.event.get_events"
-# }
+override_whitelisted_methods = {
+	"erpnext.manufacturing.doctype.work_order.work_order.get_item_details": "wrc_erpnext.wrc_erpnext.validations.work_order.get_item_details",
+}
 
