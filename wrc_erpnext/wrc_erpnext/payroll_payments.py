@@ -73,7 +73,7 @@ def get_trailer_row(payroll_entry, bank_account):
 		record_type=['7', '', 1],
 		bsb_number=[bank_account, 'bsb_no', 7],
 		blank_1=['', '', 12],
-		net_amount=[journal_entry[0], 'total_debit', 10, 'right', '0'],
+		net_amount=['0', '', 10, 'right', '0'],
 		total_credit=[journal_entry[0], 'total_credit', 10, 'right', '0'],
 		total_debit=[journal_entry[0], 'total_debit', 10, 'right', '0'],
 		blank_2=['', '', 24],

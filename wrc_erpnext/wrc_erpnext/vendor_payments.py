@@ -31,13 +31,17 @@ def create_eft_file(name):
 	)
 	trace_record = execute(trace_record)
 
+	total_amount = sum(entry.get("amount") for entry in payment_order.get("references"))
 	file_name = 'sample_name.txt'
+
 	header = get_header_row(payment_order, bank_account)
 	detail = []
 	for ref_doc in payment_order.get("references"):
 		detail.append(get_detail_row(ref_doc, trace_record, bank_account)) 
 
-	trailer = get_trailer_row(payment_order, bank_account)
+	detail.append(get_debitor_information(ref_doc, trace_record, bank_account, total_amount))
+
+	trailer = get_trailer_row(payment_order, bank_account, total_amount)
 	detail_records = "\n".join(detail)
 
 	return "\n".join([header, detail_records, trailer]), file_name
@@ -62,15 +66,14 @@ def get_header_row(payment_order, bank_account):
 	)
 	return execute(header_row)
 
-def get_trailer_row(payment_order, bank_account):
+def get_trailer_row(payment_order, bank_account, total_amount):
 	no_of_records = len(payment_order.get("references"))
-	total_amount = sum(entry.get("amount") for entry in payment_order.get("references"))
 
 	trailer_row = OrderedDict(
 		record_type=['7', '', 1],
 		bsb_number=[bank_account, 'bsb_no', 7],
 		blank_1=['', '', 12],
-		net_amount=[total_amount, '', 10, 'right', '0'],
+		net_amount=['0', '', 10, 'right', '0'],
 		total_credit=[total_amount, '', 10, 'right', '0'],
 		total_debit=[total_amount, '', 10, 'right', '0'],
 		blank_2=['', '', 24],
@@ -83,11 +86,7 @@ def get_detail_row(ref_doc, trace_detail, bank_account):
 
 	vendor_bank_account = frappe.get_doc('Bank Account', ref_doc.bank_account)
 
-	account_detail = OrderedDict(
-		account_type = [vendor_bank_account, 'account_type', 3, 'right', '0'],
-		account_number = [vendor_bank_account, 'bank_account_no', 12, 'right', '0']
-	)
-	account_detail = execute(account_detail)
+	account_detail = get_account_detail(vendor_bank_account)
 
 	reference_doc = frappe.get_doc(ref_doc.reference_doctype, ref_doc.reference_name)
 
@@ -106,3 +105,25 @@ def get_detail_row(ref_doc, trace_detail, bank_account):
 	)
 
 	return execute(detail_row)
+
+def get_debitor_information(ref_doc, trace_detail, bank_account, total_amount):
+	account_detail = get_account_detail(bank_account)
+	return execute(OrderedDict(
+		record_type=['1', '', 1],
+		bsb_number=[bank_account,'bsb_no', 7],
+		vendor_account=[account_detail, '', 15],
+		indicator=[' ', '', 1],
+		transaction_code=['13', '', 2],
+		amount=[total_amount, '', 10, 'right', '0'],
+		payment_to=[bank_account, 'client_name', 32, 'left', ' '],
+		lodgment_reference=[ref_doc, 'reference_type', 18, 'left', ' '],
+		trace_record=[trace_detail, '', 22],
+		remitter_name=[bank_account, 'client_name', 16, 'left', ' '],
+		withholding_tax=['', '', 8, 'right', '0']
+	))
+
+def get_account_detail(ref_doc):
+	return execute(OrderedDict(
+		account_type = [ref_doc, 'account_type', 3, 'right', '0'],
+		account_number = [ref_doc, 'bank_account_no', 12, 'right', '0']
+	))
