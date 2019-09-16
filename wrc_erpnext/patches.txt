@@ -1,1 +1,2 @@
 wrc_erpnext.patches.create_bom_barcode_fields
+wrc_erpnext.patches.create_payment_integration_fields
