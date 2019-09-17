@@ -44,12 +44,14 @@ def validate_information(obj, attr, max_size):
 
 	if getattr(obj, attr, None):
 		val = getattr(obj, attr)
-		if type(val) == 'int':
+		if type(val).__name__ in ('int', 'float'):
 			return validate_amount(val, max_size)
 		else:
 			return validate_field_size(val, frappe.unscrub(attr), max_size)
 
 	elif not attr:
+		if type(obj).__name__ in ('int', 'float'):
+			return validate_amount(obj, max_size)
 		return cstr(obj)
 
 	else:

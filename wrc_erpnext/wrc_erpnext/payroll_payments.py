@@ -6,9 +6,10 @@ from __future__ import unicode_literals
 import frappe
 from collections import OrderedDict
 from wrc_erpnext.wrc_erpnext.payments_integration import execute, generate_file_and_attach_to_doctype
-from frappe.utils import getdate
+from frappe.utils import getdate, flt
+from frappe import _
 
-
+frappe.flags.witholding_tax_amt = 0
 @frappe.whitelist()
 def generate_report(name):
 	data, file_name = create_eft_file(name)
@@ -34,8 +35,7 @@ def create_eft_file(name):
 	for ref_doc in payroll_entry.get("employees"):
 		detail.append(get_detail_row(ref_doc, payroll_entry, trace_record, bank_account)) 
 
-	detail.append(get_debitor_information())
-
+	detail.append(get_debitor_information(ref_doc, payroll_entry, trace_record, bank_account))
 
 	trailer = get_trailer_row(payroll_entry, bank_account)
 	detail_records = "\n".join(detail)
@@ -86,8 +86,12 @@ def get_detail_row(ref_doc, payroll_entry, trace_detail, bank_account):
 	''' generates a file for eft transactions based on Kundu Pei system for processing payroll entry '''
 
 	employee = frappe.get_doc('Employee', ref_doc.employee)
+
 	account_detail = get_account_detail(employee, 'bank_ac_no')
-	salary_slip = get_salary_slip(employee.name, payroll_entry.start_date, payroll_entry.end_date)
+	salary_slip = get_salary_slip_details(employee.name, payroll_entry.start_date, payroll_entry.end_date)
+
+	tax_witholding_amount = get_tax_witholding_amount(salary_slip.name)
+	frappe.flags.witholding_tax_amt += flt(tax_witholding_amount)
 
 	detail_row = OrderedDict(
 		record_type=['1', '', 1],
@@ -95,12 +99,12 @@ def get_detail_row(ref_doc, payroll_entry, trace_detail, bank_account):
 		vendor_account=[account_detail, '', 15],
 		indicator=[' ', '', 1],
 		transaction_code=['53', '', 2],
-		amount=[salary_slip, 'net_pay', 10, 'right', '0'],
+		amount=[salary_slip, 'rounded_total', 10, 'right', '0'],
 		payment_to=[employee, 'employee_name', 32, 'left', ' '],
 		lodgment_reference=[payroll_entry, 'name', 18, 'left', ' '],
 		trace_record=[trace_detail, '', 22],
 		remitter_name=[bank_account, 'client_name', 16, 'left', ' '],
-		withholding_tax=['', '', 8, 'right', '0']
+		withholding_tax=[tax_witholding_amount, '', 8, 'right', '0']
 	)
 
 	return execute(detail_row)
@@ -116,12 +120,12 @@ def get_debitor_information(ref_doc, payroll_entry, trace_detail, bank_account):
 		vendor_account=[account_detail, '', 15],
 		indicator=[' ', '', 1],
 		transaction_code=['13', '', 2],
-		amount=[journal_entry, 'total_debit', 10, 'right', '0'],
+		amount=[journal_entry[0], 'total_debit', 10, 'right', '0'],
 		payment_to=[bank_account, 'client_name', 32, 'left', ' '],
-		lodgment_reference=[payroll_entry, 'name', 18, 'left', ' '],
+		lodgment_reference=[payroll_entry, 'doctype', 18, 'left', ' '],
 		trace_record=[trace_detail, '', 22],
 		remitter_name=[bank_account, 'client_name', 16, 'left', ' '],
-		withholding_tax=['', '', 8, 'right', '0']
+		withholding_tax=[frappe.flags.witholding_tax_amt, '', 8, 'right', '0']
 	))
 
 def get_journal_entry(name):
@@ -139,12 +143,21 @@ def get_journal_entry(name):
 			AND jea.reference_name=%s
 	''', (name), as_dict=1)
 
-def get_salary_slip(employee, start_date, end_date):
+def get_tax_witholding_amount(name):
+	tax_doc = frappe.db.get_value('Salary Detail', filters={
+		'parentfield': 'deductions',
+		'parenttype': 'doctype',
+		'parent': name,
+		'abbr': 'IT'
+	}, fieldname=['amount'])
+	return tax_doc if tax_doc else 0
+
+def get_salary_slip_details(employee, start_date, end_date):
 	return frappe.db.get_value('Salary Slip', filters={
 		'employee': employee,
 		'start_date': start_date,
 		'end_date': end_date
-		}, fieldname=['net_pay', 'name'], as_dict=1)
+		}, fieldname=['rounded_total', 'name'], as_dict=1)
 
 def get_account_detail(ref_doc, ref_fieldname):
 	''' Creates a 15 digit combination of account type and bank account no '''

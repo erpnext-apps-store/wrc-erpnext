@@ -9,7 +9,7 @@ frappe.ui.form.on('Payroll Entry', {
 	},
 	generate_text_and_download_file: (frm) => {
 		return frappe.call({
-			method: "wrc_erpnext.wrc_erpnext.payments_integration.generate_report",
+			method: "wrc_erpnext.wrc_erpnext.payroll_payments.generate_report",
 			args: {
 				name: frm.doc.name
 			},

@@ -84,11 +84,10 @@ def get_trailer_row(payment_order, bank_account, total_amount):
 
 def get_detail_row(ref_doc, trace_detail, bank_account):
 
-	vendor_bank_account = frappe.get_doc('Bank Account', ref_doc.bank_account)
+	vendor_bank_account = frappe.get_cached_doc('Bank Account', ref_doc.bank_account)
 
 	account_detail = get_account_detail(vendor_bank_account)
-
-	reference_doc = frappe.get_doc(ref_doc.reference_doctype, ref_doc.reference_name)
+	reference_doc = frappe.get_cached_doc(ref_doc.reference_doctype, ref_doc.reference_name)
 
 	detail_row = OrderedDict(
 		record_type=['1', '', 1],
@@ -108,6 +107,7 @@ def get_detail_row(ref_doc, trace_detail, bank_account):
 
 def get_debitor_information(ref_doc, trace_detail, bank_account, total_amount):
 	account_detail = get_account_detail(bank_account)
+	withholding_tax = get_withholding_tax(ref_doc)
 	return execute(OrderedDict(
 		record_type=['1', '', 1],
 		bsb_number=[bank_account,'bsb_no', 7],
@@ -116,10 +116,10 @@ def get_debitor_information(ref_doc, trace_detail, bank_account, total_amount):
 		transaction_code=['13', '', 2],
 		amount=[total_amount, '', 10, 'right', '0'],
 		payment_to=[bank_account, 'client_name', 32, 'left', ' '],
-		lodgment_reference=[ref_doc, 'reference_type', 18, 'left', ' '],
+		lodgment_reference=[ref_doc, 'reference_doctype', 18, 'left', ' '],
 		trace_record=[trace_detail, '', 22],
 		remitter_name=[bank_account, 'client_name', 16, 'left', ' '],
-		withholding_tax=['', '', 8, 'right', '0']
+		withholding_tax=[withholding_tax, '', 8, 'right', '0']
 	))
 
 def get_account_detail(ref_doc):
@@ -127,3 +127,13 @@ def get_account_detail(ref_doc):
 		account_type = [ref_doc, 'account_type', 3, 'right', '0'],
 		account_number = [ref_doc, 'bank_account_no', 12, 'right', '0']
 	))
+
+def get_withholding_tax(ref_doc):
+	tax_witholding_category = frappe.get_cached_value('Supplier', name=ref_doc.supplier, fieldname='tax_witholding_category')
+	if not tax_witholding_category:
+		return 0
+	return frappe.get_value('Purchase Taxes and Charges', filters={
+		'parenttype': 'Purchase Invoice',
+		'add_deduct_tax': 'Deduct',
+		'parent': ref_doc.reference_name
+		}, fieldname='base_tax_amount_after_discount_amount')

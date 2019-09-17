@@ -13,6 +13,7 @@ frappe.ui.form.on('Payment Order', {
 				name: frm.doc.name
 			},
 			freeze: true,
+			freeze_message: __('Generating File'),
 			callback: function(r) {
 				{
 					frm.reload_doc();
