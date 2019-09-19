@@ -30,6 +30,8 @@ doctype_js = {
 	"Work Order" : "public/js/Work Order.js",
     "Payroll Entry": "public/js/Payroll Entry.js",
 	"Payment Order": "public/js/Payment Order.js",
+	"Bank Account": "public/js/Bank Account.js",
+	"Employee": "public/js/Employee.js",
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
@@ -86,6 +88,12 @@ doctype_js = {
 doc_events = {
 	"BOM": {
 		"validate": "wrc_erpnext.wrc_erpnext.validations.bom.validate",
+	},
+	"Bank Account": {
+		"validate": "wrc_erpnext.wrc_erpnext.validations.bank_account.validate",
+	},
+	"Employee": {
+		"validate": "wrc_erpnext.wrc_erpnext.validations.employee.validate",
 	}
 }
 
