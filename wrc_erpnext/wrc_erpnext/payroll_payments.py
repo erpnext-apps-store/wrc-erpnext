@@ -5,18 +5,21 @@
 from __future__ import unicode_literals
 import frappe
 from collections import OrderedDict
-from wrc_erpnext.wrc_erpnext.payments_integration import execute, generate_file_and_attach_to_doctype
+from wrc_erpnext.wrc_erpnext.payments_integration import execute, \
+	generate_file_and_attach_to_doctype, generate_file_name
 from frappe.utils import getdate, flt
 from frappe import _
 
-frappe.flags.witholding_tax_amt = 0
 @frappe.whitelist()
 def generate_report(name):
+	frappe.flags.witholding_tax_amt = 0
 	data, file_name = create_eft_file(name)
 	return generate_file_and_attach_to_doctype(file_name, data, 'Payroll Entry', name)
 
 def create_eft_file(name):
 	payroll_entry = frappe.get_doc("Payroll Entry", name)
+
+	file_name = generate_file_name(name, payroll_entry.doctype, getdate())
 
 	if not payroll_entry.bank_account:
 		frappe.throw(_('Bank Account has to be mentioned'))
@@ -24,12 +27,12 @@ def create_eft_file(name):
 	bank_account = frappe.get_doc("Bank Account", payroll_entry.bank_account)
 
 	trace_record = OrderedDict(
-		account_type = [bank_account, 'bsb_no', 7, 'right', '0'],
+		bsb_no = [bank_account, 'bsb_no', 7, 'right', '0'],
+		account_type = [bank_account, 'account_type', 3, 'right', '0'],
 		account_number = [bank_account, 'bank_account_no', 12, 'right', '0']
 	)
 	trace_record = execute(trace_record)
 
-	file_name = 'sample_name.txt'
 	header = get_header_row(payroll_entry, bank_account)
 	detail = []
 	for ref_doc in payroll_entry.get("employees"):
@@ -46,7 +49,7 @@ def get_header_row(payroll_entry, bank_account):
 
 	date = getdate().strftime('%Y%m%d') 
 
-	sequence_no = '01'
+	sequence_no = 1
 
 	header_row = OrderedDict(
 		record_type=['0', '', 1],
@@ -71,7 +74,7 @@ def get_trailer_row(payroll_entry, bank_account):
 
 	trailer_row = OrderedDict(
 		record_type=['7', '', 1],
-		bsb_number=[bank_account, 'bsb_no', 7],
+		bsb_no=[bank_account, 'bsb_no', 7],
 		blank_1=['', '', 12],
 		net_amount=['0', '', 10, 'right', '0'],
 		total_credit=[journal_entry[0], 'total_credit', 10, 'right', '0'],
@@ -95,7 +98,7 @@ def get_detail_row(ref_doc, payroll_entry, trace_detail, bank_account):
 
 	detail_row = OrderedDict(
 		record_type=['1', '', 1],
-		bsb_number=[employee,'bsb_no', 7],
+		bsb_no=[employee,'bsb_no', 7],
 		vendor_account=[account_detail, '', 15],
 		indicator=[' ', '', 1],
 		transaction_code=['53', '', 2],
@@ -116,7 +119,7 @@ def get_debitor_information(ref_doc, payroll_entry, trace_detail, bank_account):
 
 	return execute(OrderedDict(
 		record_type=['1', '', 1],
-		bsb_number=[bank_account,'bsb_no', 7],
+		bsb_no=[bank_account,'bsb_no', 7],
 		vendor_account=[account_detail, '', 15],
 		indicator=[' ', '', 1],
 		transaction_code=['13', '', 2],

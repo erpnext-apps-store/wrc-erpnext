@@ -74,25 +74,28 @@ def validate_amount(val, max_int_size):
 	if int_size > max_int_size:
 		frappe.throw(_("Amount for a single transaction exceeds maximum allowed amount, create a separate payment order by splitting the transactions"))
 
-	return sanitize_data(cstr(val))
+	return sanitize_amt(val or 0)
+
+def sanitize_amt(val):
+	''' Represent all the amounts without the decimals such that last two digits are always toeas
+		e.g. 100.0 -> 10000 '''
+
+	return sanitize_data(format(val, '0.2f'))
 
 def format_value(val, length, justification='right', padding_type=' '):
 	''' format value based on the length, justification and padding type '''
+
 	if justification == 'right':
 		return val.rjust(length, padding_type)
 	else:
 		return val.ljust(length, padding_type)
 
-# def generate_file_name(name, company_account, date):
-# 	''' generate file name with format (account_code)_mmdd_(payment_order_no) '''
-# 	bank, acc_no = frappe.db.get_value("Bank Account", {"name": company_account}, ['bank', 'bank_account_no'])
-# 	return bank[:1]+str(acc_no)[-4:]+'_'+date.strftime("%m%d")+sanitize_data(name, '')[4:]+'.txt'
+def generate_file_name(name, doctype, date):
+	''' generate file name with format (doctype)_mmdd_(docname) '''
+
+	return doctype+'_'+date.strftime("%m%d")+'_'+sanitize_data(name, '')[4:]+'.txt'
 
 def sanitize_data(val, replace_str=''):
 	''' Remove all the non-alphanumeric characters from string '''
 	pattern = re.compile('[\W_]+')
 	return pattern.sub(replace_str, val)
-
-# def format_date(val):
-# 	''' Convert a datetime object to DD/MM/YYYY format '''
-# 	return val.strftime("%d/%m/%Y")
