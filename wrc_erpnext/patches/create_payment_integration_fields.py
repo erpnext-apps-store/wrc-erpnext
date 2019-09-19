@@ -13,12 +13,12 @@ def make_custom_fields(update=True):
 	employee_fields = [
 		dict(fieldname='account_type', label='Account Type', fieldtype='Link',
 			options='Account Type', insert_after='bank_ac_no'),
-		dict(fieldname='bsb_no', label='BSB No', fieldtype='Data',
+		dict(fieldname='bsb_number', label='BSB Number', fieldtype='Data',
 			 insert_after='account_type')
 	]
 
 	bank_account_fields = [
-		dict(fieldname='bsb_no', label='BSB No', fieldtype='Data',
+		dict(fieldname='bsb_number', label='BSB Number', fieldtype='Data',
 			 insert_after='iban'),
 		dict(fieldname='eft_section', label='EFT Details', fieldtype='Section Break',
 			 insert_after='swift_number'),
