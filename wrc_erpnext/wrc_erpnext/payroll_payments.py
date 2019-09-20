@@ -32,7 +32,6 @@ def create_eft_file(name):
 		account_number = [bank_account, 'bank_account_no', 12, 'right', '0']
 	)
 	trace_record = execute(trace_record)
-
 	header = get_header_row(payroll_entry, bank_account)
 	detail = []
 	for ref_doc in payroll_entry.get("employees"):

@@ -64,7 +64,7 @@ def get_header_row(payment_order, bank_account):
 		blank_2=['', '', 7],
 		user_name=[bank_account, 'client_name', 26, 'left', ' '],
 		user_id=[bank_account, 'client_code', 6, 'right', '0'],
-		entry_description=['PAYMENT ENTRY', '', 12, 'left', ' '],
+		entry_description=['Purchase Invoice', '', 12, 'left', ' '],
 		processing_date=[date, '', 8],
 		blank_3=['', '', 50]
 	)

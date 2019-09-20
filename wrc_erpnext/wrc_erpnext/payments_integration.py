@@ -93,7 +93,7 @@ def format_value(val, length, justification='right', padding_type=' '):
 def generate_file_name(name, doctype, date):
 	''' generate file name with format (doctype)_mmdd_(docname) '''
 
-	return doctype+'_'+date.strftime("%m%d")+'_'+sanitize_data(name, '')[4:]+'.txt'
+	return doctype+'_'+date.strftime("%m%d")+'_'+sanitize_data(name, '')[4:]+'.aba'
 
 def sanitize_data(val, replace_str=''):
 	''' Remove all the non-alphanumeric characters from string '''
