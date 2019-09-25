@@ -27,7 +27,7 @@ def create_eft_file(name):
 	bank_account = frappe.get_doc("Bank Account", payroll_entry.bank_account)
 
 	trace_record = OrderedDict(
-		bsb_no = [bank_account, 'bsb_no', 7, 'right', '0'],
+		bsb_number = [bank_account, 'bsb_number', 7, 'right', '0'],
 		account_type = [bank_account, 'account_type', 3, 'right', '0'],
 		account_number = [bank_account, 'bank_account_no', 12, 'right', '0']
 	)
@@ -73,7 +73,7 @@ def get_trailer_row(payroll_entry, bank_account):
 
 	trailer_row = OrderedDict(
 		record_type=['7', '', 1],
-		bsb_no=[bank_account, 'bsb_no', 7],
+		bsb_number=[bank_account, 'bsb_number', 7],
 		blank_1=['', '', 12],
 		net_amount=['0', '', 10, 'right', '0'],
 		total_credit=[journal_entry[0], 'total_credit', 10, 'right', '0'],
@@ -97,7 +97,7 @@ def get_detail_row(ref_doc, payroll_entry, trace_detail, bank_account):
 
 	detail_row = OrderedDict(
 		record_type=['1', '', 1],
-		bsb_no=[employee,'bsb_no', 7],
+		bsb_number=[employee,'bsb_number', 7],
 		vendor_account=[account_detail, '', 15],
 		indicator=[' ', '', 1],
 		transaction_code=['53', '', 2],
@@ -118,7 +118,7 @@ def get_debtor_information(ref_doc, payroll_entry, trace_detail, bank_account):
 
 	return execute(OrderedDict(
 		record_type=['1', '', 1],
-		bsb_no=[bank_account,'bsb_no', 7],
+		bsb_number=[bank_account,'bsb_number', 7],
 		vendor_account=[account_detail, '', 15],
 		indicator=[' ', '', 1],
 		transaction_code=['13', '', 2],

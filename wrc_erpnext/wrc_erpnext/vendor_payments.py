@@ -75,7 +75,7 @@ def get_trailer_row(payment_order, bank_account, total_amount):
 
 	trailer_row = OrderedDict(
 		record_type=['7', '', 1],
-		bsb_no=[bank_account, 'bsb_no', 7],
+		bsb_no=[bank_account, 'bsb_number', 7],
 		blank_1=['', '', 12],
 		net_amount=['0', '', 10, 'right', '0'],
 		total_credit=[total_amount, '', 10, 'right', '0'],
@@ -97,7 +97,7 @@ def get_detail_row(ref_doc, trace_detail, bank_account, company):
 
 	detail_row = OrderedDict(
 		record_type=['1', '', 1],
-		bsb_no=[vendor_bank_account,'bsb_no', 7],
+		bsb_no=[vendor_bank_account,'bsb_number', 7],
 		vendor_account=[account_detail, '', 15],
 		indicator=[' ', '', 1],
 		transaction_code=['53', '', 2],
@@ -116,7 +116,7 @@ def get_debitor_information(ref_doc, trace_detail, bank_account, total_amount):
 	account_detail = get_account_detail(bank_account)
 	return execute(OrderedDict(
 		record_type=['1', '', 1],
-		bsb_no=[bank_account,'bsb_no', 7],
+		bsb_no=[bank_account,'bsb_number', 7],
 		vendor_account=[account_detail, '', 15],
 		indicator=[' ', '', 1],
 		transaction_code=['13', '', 2],
@@ -138,7 +138,7 @@ def get_account_detail(ref_doc):
 def get_trace_record(bank_account):
 	''' Return trace record based on bsb number + account type + bank account no '''
 	return execute(OrderedDict(
-		bsb_no = [bank_account, 'bsb_no', 7, 'right', '0'],
+		bsb_no = [bank_account, 'bsb_number', 7, 'right', '0'],
 		account_type = [bank_account, 'account_type', 3, 'right', '0'],
 		account_number = [bank_account, 'bank_account_no', 12, 'right', '0']
 	))
