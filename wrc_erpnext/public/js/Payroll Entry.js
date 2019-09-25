@@ -1,11 +1,13 @@
 frappe.ui.form.on('Payroll Entry', {
-	refresh: function(frm) {
-		if (frm.doc.docstatus==1 && (frm.doc.salary_slips_submitted
-			|| (frm.doc.__onload && frm.doc.__onload.submitted_ss))) {
-			frm.add_custom_button(__('Generate File'), function() {
-				frm.trigger("generate_text_and_download_file");
-			});
-		}
+	onload: function(frm) {
+		if (frm.doc.docstatus!==1) return
+		check_bank_entry(frm).then(check => {
+			if (check) {
+				frm.add_custom_button(__('Generate File'), function() {
+					frm.trigger("generate_text_and_download_file");
+				});
+			}
+		});
 	},
 	generate_text_and_download_file: (frm) => {
 		return frappe.call({
@@ -27,5 +29,11 @@ frappe.ui.form.on('Payroll Entry', {
 				}
 			}
 		});
-	}
+	},
 });
+
+let check_bank_entry = function(frm) {
+	return frappe.xcall("wrc_erpnext.wrc_erpnext.payroll_payments.get_bank_entries", {
+		name: frm.doc.name
+	})
+}

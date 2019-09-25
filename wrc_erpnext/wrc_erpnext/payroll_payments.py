@@ -37,7 +37,7 @@ def create_eft_file(name):
 	for ref_doc in payroll_entry.get("employees"):
 		detail.append(get_detail_row(ref_doc, payroll_entry, trace_record, bank_account)) 
 
-	detail.append(get_debitor_information(ref_doc, payroll_entry, trace_record, bank_account))
+	detail.append(get_debtor_information(ref_doc, payroll_entry, trace_record, bank_account))
 
 	trailer = get_trailer_row(payroll_entry, bank_account)
 	detail_records = "\n".join(detail)
@@ -103,7 +103,7 @@ def get_detail_row(ref_doc, payroll_entry, trace_detail, bank_account):
 		transaction_code=['53', '', 2],
 		amount=[salary_slip, 'rounded_total', 10, 'right', '0'],
 		payment_to=[employee, 'employee_name', 32, 'left', ' '],
-		lodgment_reference=[payroll_entry, 'name', 18, 'left', ' '],
+		lodgment_reference=[salary_slip, 'name', 18, 'left', ' '],
 		trace_record=[trace_detail, '', 22],
 		remitter_name=[bank_account, 'client_name', 16, 'left', ' '],
 		withholding_tax=[tax_witholding_amount, '', 8, 'right', '0']
@@ -111,7 +111,7 @@ def get_detail_row(ref_doc, payroll_entry, trace_detail, bank_account):
 
 	return execute(detail_row)
 
-def get_debitor_information(ref_doc, payroll_entry, trace_detail, bank_account):
+def get_debtor_information(ref_doc, payroll_entry, trace_detail, bank_account):
 	''' Returns creditor information '''
 	account_detail = get_account_detail(bank_account, 'bank_account_no')
 	journal_entry = get_journal_entry(payroll_entry.name)
@@ -124,7 +124,7 @@ def get_debitor_information(ref_doc, payroll_entry, trace_detail, bank_account):
 		transaction_code=['13', '', 2],
 		amount=[journal_entry[0], 'total_debit', 10, 'right', '0'],
 		payment_to=[bank_account, 'client_name', 32, 'left', ' '],
-		lodgment_reference=[payroll_entry, 'doctype', 18, 'left', ' '],
+		lodgment_reference=['Salary Slip', '', 18, 'left', ' '],
 		trace_record=[trace_detail, '', 22],
 		remitter_name=[bank_account, 'client_name', 16, 'left', ' '],
 		withholding_tax=[frappe.flags.witholding_tax_amt, '', 8, 'right', '0']
@@ -167,3 +167,15 @@ def get_account_detail(ref_doc, ref_fieldname):
 		account_type = [ref_doc, 'account_type', 3, 'right', '0'],
 		account_number = [ref_doc, ref_fieldname, 12, 'right', '0']
 	))
+
+@frappe.whitelist()
+def get_bank_entries(name):
+	''' Returns bank entries '''
+	journal_entries = frappe.db.sql(
+		'''select name from `tabJournal Entry Account`
+		where reference_type="Payroll Entry" 
+		and reference_name=%s and docstatus=0''',
+		name
+	)
+
+	return journal_entries

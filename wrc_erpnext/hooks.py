@@ -94,7 +94,7 @@ doc_events = {
 	},
 	"Employee": {
 		"validate": "wrc_erpnext.wrc_erpnext.validations.employee.validate",
-	}
+	},
 }
 
 # Scheduled Tasks
@@ -129,4 +129,3 @@ doc_events = {
 override_whitelisted_methods = {
 	"erpnext.manufacturing.doctype.work_order.work_order.get_item_details": "wrc_erpnext.wrc_erpnext.validations.work_order.get_item_details",
 }
-
