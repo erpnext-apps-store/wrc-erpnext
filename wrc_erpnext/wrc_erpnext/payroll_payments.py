@@ -101,7 +101,7 @@ def get_detail_row(ref_doc, payroll_entry, trace_detail, bank_account):
 		vendor_account=[account_detail, '', 15],
 		indicator=[' ', '', 1],
 		transaction_code=['53', '', 2],
-		amount=[salary_slip, 'rounded_total', 10, 'right', '0'],
+		amount=[salary_slip, 'net_pay', 10, 'right', '0'],
 		payment_to=[employee, 'employee_name', 32, 'left', ' '],
 		lodgment_reference=[salary_slip, 'name', 18, 'left', ' '],
 		trace_record=[trace_detail, '', 22],
@@ -155,11 +155,18 @@ def get_tax_witholding_amount(name):
 	return tax_doc if tax_doc else 0
 
 def get_salary_slip_details(employee, start_date, end_date):
-	return frappe.db.get_value('Salary Slip', filters={
+	salary_slip = frappe.db.get_value('Salary Slip', filters={
 		'employee': employee,
 		'start_date': start_date,
 		'end_date': end_date
-		}, fieldname=['rounded_total', 'name'], as_dict=1)
+		}, fieldname=['net_pay', 'name'], as_dict=1)
+
+	if salary_slip:
+		# strips 'Sal Slip/' from the name to maintain 18 character limit
+		salary_slip['name'] = salary_slip['name'].partition('/')[2]
+		salary_slip['doctype'] = 'Salary Slip'
+
+	return salary_slip
 
 def get_account_detail(ref_doc, ref_fieldname):
 	''' Creates a 15 digit combination of account type and bank account no '''
@@ -167,15 +174,3 @@ def get_account_detail(ref_doc, ref_fieldname):
 		account_type = [ref_doc, 'account_type', 3, 'right', '0'],
 		account_number = [ref_doc, ref_fieldname, 12, 'right', '0']
 	))
-
-@frappe.whitelist()
-def get_bank_entries(name):
-	''' Returns bank entries '''
-	journal_entries = frappe.db.sql(
-		'''select name from `tabJournal Entry Account`
-		where reference_type="Payroll Entry" 
-		and reference_name=%s and docstatus=0''',
-		name
-	)
-
-	return journal_entries

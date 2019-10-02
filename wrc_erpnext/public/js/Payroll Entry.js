@@ -1,8 +1,8 @@
 frappe.ui.form.on('Payroll Entry', {
 	onload: function(frm) {
 		if (frm.doc.docstatus!==1) return
-		check_bank_entry(frm).then(check => {
-			if (check) {
+		check_bank_entry(frm).then(r => {
+			if (r && r.submitted) {
 				frm.add_custom_button(__('Generate File'), function() {
 					frm.trigger("generate_text_and_download_file");
 				});
@@ -33,7 +33,7 @@ frappe.ui.form.on('Payroll Entry', {
 });
 
 let check_bank_entry = function(frm) {
-	return frappe.xcall("wrc_erpnext.wrc_erpnext.payroll_payments.get_bank_entries", {
+	return frappe.xcall("erpnext.hr.doctype.payroll_entry.payroll_entry.payroll_entry_has_bank_entries", {
 		name: frm.doc.name
 	})
 }
