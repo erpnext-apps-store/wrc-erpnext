@@ -1,4 +1,4 @@
-## WRC Erpnext
+## WRC ERPNext
 
 ERPNext customisation for WRC
 
