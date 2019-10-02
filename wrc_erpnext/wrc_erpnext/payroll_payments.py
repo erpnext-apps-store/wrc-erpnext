@@ -7,7 +7,7 @@ import frappe
 from collections import OrderedDict
 from wrc_erpnext.wrc_erpnext.payments_integration import execute, \
 	generate_file_and_attach_to_doctype, generate_file_name
-from frappe.utils import getdate, flt
+from frappe.utils import getdate, flt, cstr
 from frappe import _
 
 @frappe.whitelist()
@@ -34,6 +34,7 @@ def create_eft_file(name):
 	trace_record = execute(trace_record)
 	header = get_header_row(payroll_entry, bank_account)
 	detail = []
+	bank_account.client_name = cstr(bank_account.client_name)[:16]
 	for ref_doc in payroll_entry.get("employees"):
 		detail.append(get_detail_row(ref_doc, payroll_entry, trace_record, bank_account)) 
 
