@@ -9,7 +9,7 @@ from frappe import _
 from collections import OrderedDict
 from wrc_erpnext.wrc_erpnext.payments_integration import execute,\
 	generate_file_and_attach_to_doctype, generate_file_name
-from frappe.utils import getdate, flt
+from frappe.utils import getdate, flt, cstr
 
 @frappe.whitelist()
 def generate_report(name):
