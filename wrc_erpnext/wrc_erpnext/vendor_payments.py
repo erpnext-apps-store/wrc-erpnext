@@ -39,16 +39,17 @@ def create_eft_file(name):
 
 	# fetch detail row information (record type 1)
 	detail = []
+	bank_account.client_name = cstr(bank_account.client_name)[:16]
 	for ref_doc in payment_order.get("references"):
 		detail.append(get_detail_row(ref_doc, trace_record, bank_account, payment_order.company)) 
 
 	detail.append(get_debitor_information(ref_doc, trace_record, bank_account, total_amount))
-	detail_records = "\n".join(detail)
+	detail_records = "\r\n".join(detail)
 
 	# fetch trailer row information (record type 7)
 	trailer = get_trailer_row(payment_order, bank_account, total_amount)
 
-	return "\n".join([header, detail_records, trailer]), file_name
+	return "\r\n".join([header, detail_records, trailer]), file_name
 
 def get_header_row(payment_order, bank_account):
 
@@ -92,6 +93,7 @@ def get_detail_row(ref_doc, trace_detail, bank_account, company):
 
 	account_detail = get_account_detail(vendor_bank_account)
 	reference_doc = frappe.get_cached_doc(ref_doc.reference_doctype, ref_doc.reference_name)
+	# reference_doc.name = reference_doc.name[-18:].partition('-')
 	withholding_tax = get_withholding_tax(ref_doc, company)
 	frappe.flags.witholding_tax_amt += flt(withholding_tax) 
 

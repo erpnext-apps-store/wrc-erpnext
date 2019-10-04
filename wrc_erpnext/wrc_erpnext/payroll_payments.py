@@ -41,9 +41,9 @@ def create_eft_file(name):
 	detail.append(get_debtor_information(ref_doc, payroll_entry, trace_record, bank_account))
 
 	trailer = get_trailer_row(payroll_entry, bank_account)
-	detail_records = "\n".join(detail)
+	detail_records = "\r\n".join(detail)
 
-	return "\n".join([header, detail_records, trailer]), file_name
+	return "\r\n".join([header, detail_records, trailer]), file_name
 
 def get_header_row(payroll_entry, bank_account):
 
